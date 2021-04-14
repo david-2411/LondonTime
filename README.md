@@ -4,6 +4,4 @@
  *Then display to 4 digit 7 segment display module
  *
  *Author: David Zheng
- * 
- ============================================*/
-  
+ * ============================================*/ 
