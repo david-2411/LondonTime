@@ -1,3 +1,11 @@
+/* ==========================================
+ *
+ * Use ESP32 WiFi module to get London Time form http request to server: http://worldtimeapi.org/api/timezone/Europe/London.txt
+ * Then display to 4 digit 7 segment display module
+ *
+ * Author: David Zheng
+ * ============================================*/
+  
 #include <Wire.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
@@ -21,8 +29,8 @@ hw_timer_t * timer = NULL;
 int Time, tempTic;
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(115200); 
+  // Start WiFi connection
   WiFi.begin(ssid, password);
   Serial.println("Connecting");
   while(WiFi.status() != WL_CONNECTED) {
@@ -32,7 +40,7 @@ void setup() {
   Serial.println("");
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
-
+  //Reset Display
   Wire.begin();
   for(int i=0; i<DigitNum; i++) {
       // Turn on display 
@@ -44,20 +52,21 @@ void setup() {
       Wire.write((byte) 0);
       Wire.endTransmission();
   }
+  
   Time=-1;
   tempTic = -delayTime*1000000;
   timer = timerBegin(0, 80, true); 
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   int digit[DigitNum];
-  
+  //Send http requests every 30 seconds after previous update
   if(timerRead(timer) - tempTic >=delayTime*1000000) {
     if(WiFi.status()== WL_CONNECTED){
       HTTPClient http;
       http.begin(serverPath.c_str());
       int httpResponseCode = http.GET();
+      //Countinueosly sending http requests if unsuccessful
       while (httpResponseCode!=200) {
         Serial.print("Error code: ");
         Serial.println(httpResponseCode);
@@ -66,6 +75,7 @@ void loop() {
       Serial.print("HTTP Response code: ");
       Serial.println(httpResponseCode);
       String responseData = http.getString();
+      //Convert string to int
       digit[0] = responseData[66]-'0';
       digit[1] = responseData[67]-'0';
       digit[2] = responseData[69]-'0';
